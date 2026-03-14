@@ -2,67 +2,112 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Icecream Shop!</title>
+    <title>Icecream Shop! (Test Mode)</title>
     <style>
         body { margin: 0; background-color: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         #game-container { position: relative; width: 800px; height: 600px; background-color: #333; overflow: hidden; }
 
-        #mute-btn { position: absolute; right: 15px; bottom: 15px; width: 50px; height: 50px; z-index: 110; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; image-rendering: pixelated; }
-        #mute-btn:hover { opacity: 0.9; }
-
-        /* [수정] 이전보다 15% 더 빨라진 4.16s 속도 적용 */
-        @keyframes pingPong {
-            0% { left: 0px; }
-            100% { left: calc(800px - 640px); } 
-        }
-        
-        .move-pingpong-left { animation: pingPong 4.16s linear infinite alternate !important; }
-        .move-pingpong-right { animation: pingPong 4.16s linear infinite alternate-reverse !important; }
-
-        @keyframes sharpShake { 
-            0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-20px, 0); } 50% { transform: translate(20px, 0); } 75% { transform: translate(-20px, 0); }
-        }
-        .shake-effect { animation: sharpShake 0.1s linear !important; }
-
-        @keyframes superSpin {
-            0% { bottom: -110px; transform: translateX(-50%) rotate(0deg) scale(1); }
-            50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); }
-            100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; }
-        }
-        .super-spin { animation: superSpin 1.5s ease-in-out forwards !important; }
+        /* 시작 및 전환 설정 */
+        #intro-screen { position: absolute; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; }
+        #start-prompt { color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0px #ff5722; animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         #transition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 90; display: none; }
-        #start-img-obj { position: absolute; left: 50%; transform: translateX(-50%); width: 700px; image-rendering: pixelated; bottom: -400px; z-index: 95; }
-        #game-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 1; display: none; }
-        #customer-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 65; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
-        
-        #button-panel { position: absolute; top: 55%; display: flex; gap: 20px; z-index: 70; opacity: 0; visibility: hidden; width: fit-content; }
-        .make-btn { width: 110px; height: 110px; background: white; border: 4px solid #5a3e2b; border-radius: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 0 #5a3e2b; }
-        .make-btn img { width: 100px; height: 100px; image-rendering: pixelated; }
-        
+        #start-img-obj { position: absolute; left: 50%; transform: translateX(-50%); width: 350px; image-rendering: pixelated; bottom: -400px; z-index: 95; }
+        @keyframes sweepWithPause { 0% { bottom: -400px; transform: translateX(-50%); opacity: 0; } 5% { opacity: 1; } 40%, 70% { bottom: calc(50% - 100px); transform: translateX(-50%); } 100% { bottom: 800px; transform: translateX(-50%); opacity: 1; } }
+        .sweep-animation { animation: sweepWithPause 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        /* 윗줄 전용 핑퐁 */
+        @keyframes pingPongRow1 { 
+            0% { transform: translateX(-120px); } 
+            100% { transform: translateX(120px); } 
+        }
+        /* 아랫줄 전용 핑퐁 (반대 방향) */
+        @keyframes pingPongRow2 { 
+            0% { transform: translateX(120px); } 
+            100% { transform: translateX(-120px); } 
+        }
+
+        .move-row1-normal { animation: pingPongRow1 3s linear infinite alternate !important; }
+        .move-row1-reverse { animation: pingPongRow1 3s linear infinite alternate-reverse !important; }
+        .move-row2-normal { animation: pingPongRow2 3s linear infinite alternate !important; }
+        .move-row2-reverse { animation: pingPongRow2 3s linear infinite alternate-reverse !important; }
+
+        /* 럭셔리 버튼 전용 진동 */
+        @keyframes vibrate {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .luxury-vibrate { animation: vibrate 0.1s linear infinite; border-color: #ff9800 !important; box-shadow: 0 8px 0 #e67e22 !important; }
+
+        @keyframes sharpShake { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-12px, 0); } 20%, 40%, 60%, 80% { transform: translate(12px, 0); } }
+        .shake-effect { animation: sharpShake 0.3s cubic-bezier(.36,.07,.19,.97) both !important; }
+        @keyframes earthquake { 0% { transform: translate(0, 0); } 10% { transform: translate(-15px, 10px) rotate(-1deg); } 20% { transform: translate(15px, -10px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
+        .earthquake-effect { animation: earthquake 1s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes superSpin { 0% { bottom: -110px; transform: translateX(-50%) rotate(0deg) scale(1); } 50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); } 100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; } }
+        .super-spin { animation: superSpin 1.5s ease-in-out forwards !important; }
+        @keyframes imagePop { 0% { transform: scale(1); } 30% { transform: scale(0.85); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .pop-animation { animation: imagePop 0.4s ease-out !important; }
+
+        #button-panel { 
+            position: absolute; 
+            top: 52%; 
+            left: 50%; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            z-index: 70; 
+            opacity: 0; 
+            visibility: hidden; 
+            transform: translate(-50%); 
+        }
+        .button-row { display: flex; gap: 15px; justify-content: center; } 
+
+        .order-btn {
+            width: 100px; height: 100px; 
+            background: white; 
+            border: 4px solid #5a3e2b; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            box-shadow: 0 8px 0 #5a3e2b;
+            image-rendering: pixelated;
+        }
+
         .speech-bubble { position: absolute; bottom: 260px; left: 400px; background: white; border: 4px solid #5a3e2b; border-radius: 30px; padding: 15px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 180px; }
+        #order-icon { height: auto; image-rendering: pixelated; }
+        .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
         #score-panel { position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold; }
+        #ending-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; display: none; justify-content: center; align-items: center; }
+        #ending-img { width: 600px; image-rendering: pixelated; opacity: 0; cursor: pointer; }
+        .fade-in { opacity: 1 !important; transition: opacity 2s ease-in; }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <img src="mute.png" id="mute-btn" onclick="toggleMute()">
-    <div id="intro-screen" onclick="startSequence()" style="position:absolute; width:100%; height:100%; background:#000; z-index:100; display:flex; justify-content:center; align-items:center; cursor:pointer;">
+    <img src="mute.png" id="mute-btn" onclick="toggleMute()" style="position: absolute; right: 15px; bottom: 15px; width: 50px; height: 50px; z-index: 110; cursor: pointer; opacity: 0.5;">
+    <div id="intro-screen" onclick="startSequence()">
         <img src="logo.png" style="width:600px; image-rendering:pixelated;">
+        <div id="start-prompt">Push to Start</div>
     </div>
     <div id="transition-layer"><img src="start.png" id="start-img-obj"></div>
-    <div id="game-screen"></div>
-    <div id="customer-layer"></div>
-    <div id="overlay"></div>
+    <div id="game-screen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 1; display: none;"></div>
+    <div id="customer-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none;"></div>
+    <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 65; opacity: 0; transition: opacity 0.5s; pointer-events: none;"></div>
     <div id="speech-bubble" class="speech-bubble">
-        <img id="order-icon" style="width:275px; height:auto; image-rendering:pixelated;" src="">
-        <span id="order-text" style="font-size:24px; color:#5a3e2b; margin-top:8px;"></span>
+        <img id="order-icon" src="">
+        <span id="order-text" style="font-size:24px; color:#5a3e2b; margin-top:8px; font-family: 'Courier New'; font-weight: bold;"></span>
     </div>
     <div id="button-panel"></div>
-    <div id="score-panel">COINS: <span id="coin-count">0</span></div>
+    <div id="score-panel" style="position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold;">COINS: <span id="coin-count">0</span></div>
+    <div id="ending-screen"><img src="ending.png" id="ending-img" onclick="handleEndingClick()"></div>
 </div>
 
 <script>
@@ -70,114 +115,150 @@
     const sndYay = new Audio('yay.wav');
     const sndKaching = new Audio('kaching.wav');
     const sndWrong = new Audio('wrong answer.wav');
+    const sndBye = new Audio('bye.wav');
+    const sndGo = new Audio('go.wav');
     const bgm = new Audio('Scoops and Smiles.mp3');
     bgm.loop = true; bgm.volume = 0.4;
 
     const customerList = ['customer_alien.png', 'customer_boy.png', 'customer_girl.png', 'customer_pingo.png', 'customer_puppy.png'];
     const icecreamMenu = [
-        { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png' },
-        { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png' },
-        { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png' },
-        { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png' },
-        { id: 'banana', name: 'BANANA', img: 'icecream_banana.png' }
+        { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png', score: 12 },
+        { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png', score: 8 },
+        { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png', score: 10 },
+        { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png', score: 11 },
+        { id: 'banana', name: 'BANANA', img: 'icecream_banana.png', score: 5 },
+        { id: 'luxury', name: 'LUXURY CHOCO', img: 'luxury.png', score: 388 }
     ];
 
     let currentOrder = null;
     let score = 0;
     let isMuted = false;
+    let isGameEnded = false;
+    let luxuryAppearedCount = 0;
+    let maxLuxuryAllowed = Math.random() < 0.5 ? 1 : 2;
 
     function toggleMute() {
-        isMuted = !isMuted;
-        bgm.muted = isMuted;
-        document.getElementById('mute-btn').src = isMuted ? 'unmute.png' : 'mute.png';
+        isMuted = !isMuted; bgm.muted = isMuted;
+        document.querySelector('#mute-btn').src = isMuted ? 'unmute.png' : 'mute.png';
+    }
+
+    function handleEndingClick() {
+        const el = document.getElementById('ending-img');
+        sndBye.currentTime = 0; sndBye.play();
+        el.classList.remove('pop-animation');
+        void el.offsetWidth;
+        el.classList.add('pop-animation');
     }
 
     function startSequence() {
-        bgm.play().catch(e => {});
-        sndClick.play();
+        bgm.play().catch(e => {}); sndClick.play();
         document.getElementById('intro-screen').style.display = 'none';
         const transLayer = document.getElementById('transition-layer');
         transLayer.style.display = 'block';
         document.getElementById('start-img-obj').classList.add('sweep-animation');
+        setTimeout(() => { sndGo.play().catch(e => {}); }, 700);
         setTimeout(() => {
             transLayer.style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
-            initButtons();
             spawnCustomer();
         }, 1800);
     }
 
-    function initButtons() {
+    function spawnCustomer() {
+        if(isGameEnded) return;
         const panel = document.getElementById('button-panel');
         panel.innerHTML = '';
-        icecreamMenu.forEach(item => {
+        
+        const shuffle = [...icecreamMenu].sort(() => Math.random() - 0.5);
+        const row1 = document.createElement('div');
+        row1.className = 'button-row';
+        const row2 = document.createElement('div');
+        row2.className = 'button-row';
+        
+        shuffle.forEach((item, index) => {
             const btn = document.createElement('div');
-            btn.className = 'make-btn';
-            btn.innerHTML = `<img src="${item.img}">`;
-            btn.onclick = (e) => { e.stopPropagation(); checkOrder(item.id); };
-            panel.appendChild(btn);
+            btn.className = 'order-btn' + (item.id === 'luxury' ? ' luxury-vibrate' : '');
+            btn.innerHTML = `<img src="${item.img}" style="width: 80px; height: 80px; image-rendering: pixelated;">`;
+            btn.onclick = () => { if(!isGameEnded) checkOrder(item.id); };
+            if(index < 3) row1.appendChild(btn);
+            else row2.appendChild(btn);
         });
-    }
 
-    function spawnCustomer() {
+        panel.appendChild(row1);
+        panel.appendChild(row2);
+
         const layer = document.getElementById('customer-layer');
-        const bubble = document.getElementById('speech-bubble');
-        const overlay = document.getElementById('overlay');
-        const panel = document.getElementById('button-panel');
-
         layer.innerHTML = '';
-        bubble.style.opacity = '0';
-        overlay.style.opacity = '0';
-        panel.style.visibility = 'hidden';
-        panel.style.opacity = '0';
-        panel.classList.remove('move-pingpong-left', 'move-pingpong-right');
-
+        document.getElementById('speech-bubble').style.opacity = '0';
+        document.getElementById('overlay').style.opacity = '0';
+        panel.style.visibility = 'hidden'; panel.style.opacity = '0';
+        
+        row1.classList.remove('move-row1-normal', 'move-row1-reverse');
+        row2.classList.remove('move-row2-normal', 'move-row2-reverse');
+        
         const img = new Image();
         img.src = customerList[Math.floor(Math.random() * customerList.length)];
         img.className = 'customer';
         layer.appendChild(img);
+        
+        if (luxuryAppearedCount < maxLuxuryAllowed && (Math.random() < 0.15 || (score > 4 && luxuryAppearedCount === 0))) {
+            currentOrder = icecreamMenu.find(m => m.id === 'luxury');
+            luxuryAppearedCount++;
+        } else {
+            currentOrder = icecreamMenu.filter(m => m.id !== 'luxury')[Math.floor(Math.random() * 5)];
+        }
 
-        currentOrder = icecreamMenu[Math.floor(Math.random() * icecreamMenu.length)];
-        document.getElementById('order-icon').src = currentOrder.img;
+        const icon = document.getElementById('order-icon');
+        icon.src = currentOrder.img;
+        icon.style.width = (currentOrder.id === 'luxury') ? '104px' : '275px';
         document.getElementById('order-text').innerText = currentOrder.name + "!";
-
+        
         setTimeout(() => { img.style.bottom = '-110px'; }, 100);
-        setTimeout(() => { bubble.style.opacity = '1'; }, 1600);
+        setTimeout(() => { document.getElementById('speech-bubble').style.opacity = '1'; }, 1600);
         setTimeout(() => {
-            overlay.style.opacity = '1'; 
-            panel.style.visibility = 'visible';
-            panel.style.opacity = '1';
-            const startDir = Math.random() < 0.5 ? 'move-pingpong-left' : 'move-pingpong-right';
-            panel.classList.add(startDir);
+            document.getElementById('overlay').style.opacity = '1'; 
+            panel.style.visibility = 'visible'; panel.style.opacity = '1';
+            
+            const isReverse = Math.random() < 0.5;
+            row1.classList.add(isReverse ? 'move-row1-reverse' : 'move-row1-normal');
+            row2.classList.add(isReverse ? 'move-row2-reverse' : 'move-row2-normal');
         }, 3600);
     }
 
     function checkOrder(id) {
         const container = document.getElementById('game-container');
-        const panel = document.getElementById('button-panel');
-        const customer = document.querySelector('.customer');
-
         if (id === currentOrder.id) {
             sndClick.currentTime = 0; sndClick.play();
-            score += 10;
+            score += currentOrder.score;
             document.getElementById('coin-count').innerText = score;
             document.getElementById('overlay').style.opacity = '0';
-            panel.style.opacity = '0';
-            panel.style.visibility = 'hidden';
-            panel.classList.remove('move-pingpong-left', 'move-pingpong-right');
+            document.getElementById('button-panel').style.opacity = '0';
             document.getElementById('speech-bubble').style.opacity = '0';
             sndYay.play(); sndKaching.play(); 
-
-            if (customer) {
-                customer.style.transition = 'none';
-                customer.classList.add('super-spin');
+            container.classList.add('earthquake-effect');
+            const customer = document.querySelector('.customer');
+            if (customer) { customer.classList.add('super-spin'); }
+            
+            // [수정] 승리 조건 888점으로 복구
+            if (score >= 888) {
+                isGameEnded = true;
+                setTimeout(() => {
+                    bgm.pause();
+                    document.getElementById('ending-screen').style.display = 'flex';
+                    setTimeout(() => document.getElementById('ending-img').classList.add('fade-in'), 100);
+                }, 1600);
+            } else {
+                setTimeout(() => { 
+                    container.classList.remove('earthquake-effect');
+                    spawnCustomer(); 
+                }, 1600);
             }
-            setTimeout(spawnCustomer, 1600);
         } else {
             sndWrong.currentTime = 0; sndWrong.play();
             container.classList.remove('shake-effect');
-            void container.offsetWidth; 
+            void container.offsetWidth;
             container.classList.add('shake-effect');
+            setTimeout(() => container.classList.remove('shake-effect'), 300);
         }
     }
 </script>
