@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Icecream Shop!</title>
+    <style>
+        body { margin: 0; background-color: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #game-container { position: relative; width: 800px; height: 600px; background-color: #333; overflow: hidden; }
+
+        /* 오답 시 떨림 애니메이션 (0.1s로 매우 빠름) */
+        @keyframes sharpShake { 
+            0% { transform: translate(0, 0); } 
+            25% { transform: translate(-20px, 0); } 
+            50% { transform: translate(20px, 0); } 
+            75% { transform: translate(-20px, 0); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake-effect { animation: sharpShake 0.1s linear !important; }
+
+        /* 기타 애니메이션 (동일) */
+        @keyframes sweepWithPause {
+            0% { bottom: -400px; transform: translateX(-50%); opacity: 0; }
+            5% { opacity: 1; }
+            40%, 70% { bottom: calc(50% - 150px); transform: translateX(-50%); } 
+            100% { bottom: 800px; transform: translateX(-50%); opacity: 1; }
+        }
+        .sweep-animation { animation: sweepWithPause 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes earthquake {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-15px, 10px) rotate(-1deg); }
+            20% { transform: translate(15px, -10px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .earthquake-effect { animation: earthquake 1s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes superSpin {
+            0% { bottom: -110px; transform: translateX(-50%) rotate(0deg) scale(1); }
+            50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); }
+            100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; }
+        }
+        .super-spin { animation: superSpin 1.5s ease-in-out forwards !important; }
+
+        #transition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 90; display: none; }
+        #start-img-obj { position: absolute; left: 50%; transform: translateX(-50%); width: 700px; image-rendering: pixelated; bottom: -400px; z-index: 95; }
+        #game-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 1; display: none; }
+        #customer-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 65; opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+        #button-panel { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 20px; z-index: 70; opacity: 0; visibility: hidden; transition: opacity 0.5s, visibility 0.5s; }
+        .make-btn { width: 120px; height: 120px; background: white; border: 4px solid #5a3e2b; border-radius: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 0 #5a3e2b; }
+        .make-btn img { width: 115px; height: 115px; image-rendering: pixelated; }
+        .speech-bubble { position: absolute; bottom: 260px; left: 400px; background: white; border: 4px solid #5a3e2b; border-radius: 30px; padding: 15px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 180px; }
+        .order-img { width: 275px; height: auto; image-rendering: pixelated; }
+        #score-panel { position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="intro-screen" onclick="startSequence()" style="position:absolute; width:100%; height:100%; background:#000; z-index:100; display:flex; justify-content:center; align-items:center; cursor:pointer;">
+        <img src="logo.png" style="width:600px; image-rendering:pixelated;">
+    </div>
+    <div id="transition-layer"><img src="start.png" id="start-img-obj"></div>
+    <div id="game-screen"></div>
+    <div id="customer-layer"></div>
+    <div id="overlay"></div>
+    <div id="speech-bubble" class="speech-bubble">
+        <img id="order-icon" class="order-img" src="">
+        <span id="order-text" style="font-size:24px; color:#5a3e2b; margin-top:8px;"></span>
+    </div>
+    <div id="button-panel"></div>
+    <div id="score-panel">COINS: <span id="coin-count">0</span></div>
+</div>
+
+<script>
+    // 오디오 설정
+    const sndClick = new Audio('click.wav');
+    const sndYay = new Audio('yay.wav');
+    const sndKaching = new Audio('kaching.wav');
+    const sndWrong = new Audio('wrong answer.wav'); // [추가] 오답 사운드
+    
+    const bgm = new Audio('Scoops and Smiles.mp3');
+    bgm.loop = true;
+    bgm.volume = 0.4;
+
+    const customerList = ['customer_alien.png', 'customer_boy.png', 'customer_girl.png', 'customer_pingo.png', 'customer_puppy.png'];
+    const icecreamMenu = [
+        { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png' },
+        { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png' },
+        { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png' },
+        { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png' },
+        { id: 'banana', name: 'BANANA', img: 'icecream_banana.png' }
+    ];
+
+    let currentOrder = null;
+    let score = 0;
+
+    function startSequence() {
+        bgm.play().catch(e => console.log("BGM 재생 실패:", e));
+        sndClick.play();
+        
+        document.getElementById('intro-screen').style.display = 'none';
+        const transLayer = document.getElementById('transition-layer');
+        const startImg = document.getElementById('start-img-obj');
+        transLayer.style.display = 'block';
+        startImg.classList.add('sweep-animation');
+        
+        setTimeout(() => {
+            transLayer.style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            initButtons();
+            spawnCustomer();
+        }, 1800);
+    }
+
+    function initButtons() {
+        const panel = document.getElementById('button-panel');
+        panel.innerHTML = '';
+        icecreamMenu.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'make-btn';
+            btn.innerHTML = `<img src="${item.img}">`;
+            btn.onclick = (e) => { e.stopPropagation(); checkOrder(item.id); };
+            panel.appendChild(btn);
+        });
+    }
+
+    function spawnCustomer() {
+        const layer = document.getElementById('customer-layer');
+        const bubble = document.getElementById('speech-bubble');
+        const overlay = document.getElementById('overlay');
+        const panel = document.getElementById('button-panel');
+        layer.innerHTML = '';
+        bubble.style.opacity = '0';
+        overlay.style.opacity = '0';
+        panel.style.opacity = '0';
+        panel.style.visibility = 'hidden';
+        const img = new Image();
+        img.src = customerList[Math.floor(Math.random() * customerList.length)];
+        img.className = 'customer';
+        layer.appendChild(img);
+        currentOrder = icecreamMenu[Math.floor(Math.random() * icecreamMenu.length)];
+        document.getElementById('order-icon').src = currentOrder.img;
+        document.getElementById('order-text').innerText = currentOrder.name + "!";
+        setTimeout(() => { img.style.bottom = '-110px'; }, 100);
+        setTimeout(() => { bubble.style.opacity = '1'; }, 1600);
+        setTimeout(() => {
+            overlay.style.opacity = '1'; 
+            panel.style.visibility = 'visible';
+            panel.style.opacity = '1';
+        }, 3600);
+    }
+
+    function checkOrder(id) {
+        const container = document.getElementById('game-container');
+        const customer = document.querySelector('.customer');
+
+        if (id === currentOrder.id) {
+            sndClick.currentTime = 0;
+            sndClick.play();
+            score += 10;
+            document.getElementById('coin-count').innerText = score;
+            document.getElementById('overlay').style.opacity = '0';
+            document.getElementById('button-panel').style.opacity = '0';
+            document.getElementById('button-panel').style.visibility = 'hidden';
+            document.getElementById('speech-bubble').style.opacity = '0';
+            sndYay.play();
+            sndKaching.play(); 
+            container.classList.remove('earthquake-effect');
+            void container.offsetWidth; 
+            container.classList.add('earthquake-effect');
+            if (customer) {
+                customer.style.transition = 'none';
+                customer.classList.add('super-spin');
+            }
+            setTimeout(spawnCustomer, 1600);
+        } else {
+            // [수정] 오답 사운드 재생
+            sndWrong.currentTime = 0; 
+            sndWrong.play();
+
+            // 화면 떨림 효과 리셋 및 실행
+            container.classList.remove('shake-effect');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    container.classList.add('shake-effect');
+                });
+            });
+            setTimeout(() => { container.classList.remove('shake-effect'); }, 150);
+        }
+    }
+</script>
+</body>
+</html>
