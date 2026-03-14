@@ -2,97 +2,63 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Icecream Shop! (Test Mode)</title>
+    <title>Icecream Shop! - Luxury Optimized</title>
     <style>
         body { margin: 0; background-color: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         #game-container { position: relative; width: 800px; height: 600px; background-color: #333; overflow: hidden; }
 
-        /* 시작 및 전환 설정 */
+        /* [애니메이션: 정답 시 0.5초 튕김] */
+        @keyframes strongBounce {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            15%, 45%, 75% { transform: scale(1.08); filter: brightness(1.2); }
+            30%, 60%, 90% { transform: scale(0.96); filter: brightness(1.1); }
+        }
+        .correct-bounce { animation: strongBounce 0.5s ease-out !important; }
+
+        /* [애니메이션: 오답 시 흔들림] */
+        @keyframes sharpShake { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-12px, 0); } 20%, 40%, 60%, 80% { transform: translate(12px, 0); } }
+        .shake-effect { animation: sharpShake 0.3s cubic-bezier(.36,.07,.19,.97) both !important; }
+
         #intro-screen { position: absolute; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; }
-        #start-prompt { color: #ffffff; font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0px #ff5722; animation: blink 1s step-end infinite; }
+        #start-prompt { color: #ffffff; font-family: 'Courier New'; font-size: 32px; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0px #ff5722; animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         #transition-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 90; display: none; }
         #start-img-obj { position: absolute; left: 50%; transform: translateX(-50%); width: 350px; image-rendering: pixelated; bottom: -400px; z-index: 95; }
-        @keyframes sweepWithPause { 0% { bottom: -400px; transform: translateX(-50%); opacity: 0; } 5% { opacity: 1; } 40%, 70% { bottom: calc(50% - 100px); transform: translateX(-50%); } 100% { bottom: 800px; transform: translateX(-50%); opacity: 1; } }
         .sweep-animation { animation: sweepWithPause 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes sweepWithPause { 0% { bottom: -400px; transform: translateX(-50%); opacity: 0; } 5% { opacity: 1; } 40%, 70% { bottom: calc(50% - 100px); transform: translateX(-50%); } 100% { bottom: 800px; transform: translateX(-50%); opacity: 1; } }
 
-        /* 윗줄 전용 핑퐁 */
-        @keyframes pingPongRow1 { 
-            0% { transform: translateX(-120px); } 
-            100% { transform: translateX(120px); } 
-        }
-        /* 아랫줄 전용 핑퐁 (반대 방향) */
-        @keyframes pingPongRow2 { 
-            0% { transform: translateX(120px); } 
-            100% { transform: translateX(-120px); } 
-        }
+        @keyframes pingPongRow1 { 0% { transform: translateX(-120px); } 100% { transform: translateX(120px); } }
+        @keyframes pingPongRow2 { 0% { transform: translateX(120px); } 100% { transform: translateX(-120px); } }
+        .move-row1-normal { animation: pingPongRow1 3s linear infinite alternate; }
+        .move-row2-normal { animation: pingPongRow2 3s linear infinite alternate; }
 
-        .move-row1-normal { animation: pingPongRow1 3s linear infinite alternate !important; }
-        .move-row1-reverse { animation: pingPongRow1 3s linear infinite alternate-reverse !important; }
-        .move-row2-normal { animation: pingPongRow2 3s linear infinite alternate !important; }
-        .move-row2-reverse { animation: pingPongRow2 3s linear infinite alternate-reverse !important; }
+        #button-panel { position: absolute; top: 52%; left: 50%; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 70; opacity: 0; visibility: hidden; transform: translate(-50%, 0); }
+        .button-row { display: flex; gap: 15px; justify-content: center; align-items: center; } 
+        .order-btn { width: 100px; height: 100px; background: white; border: 4px solid #5a3e2b; border-radius: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 0 #5a3e2b; image-rendering: pixelated; box-sizing: border-box; }
+        .order-btn img { width: 75px; height: 75px; object-fit: contain; }
+        .fail-btn { width: 92px !important; height: 92px !important; }
 
-        /* 럭셔리 버튼 전용 진동 */
-        @keyframes vibrate {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); }
-            100% { transform: translate(0); }
-        }
-        .luxury-vibrate { animation: vibrate 0.1s linear infinite; border-color: #ff9800 !important; box-shadow: 0 8px 0 #e67e22 !important; }
-
-        @keyframes sharpShake { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-12px, 0); } 20%, 40%, 60%, 80% { transform: translate(12px, 0); } }
-        .shake-effect { animation: sharpShake 0.3s cubic-bezier(.36,.07,.19,.97) both !important; }
-        @keyframes earthquake { 0% { transform: translate(0, 0); } 10% { transform: translate(-15px, 10px) rotate(-1deg); } 20% { transform: translate(15px, -10px) rotate(1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
-        .earthquake-effect { animation: earthquake 1s cubic-bezier(.36,.07,.19,.97) both; }
+        .speech-bubble { position: absolute; bottom: 260px; left: 380px; background: white; border: 4px solid #5a3e2b; border-radius: 35px; padding: 25px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 250px; }
+        #order-icon { width: 220px; height: 220px; image-rendering: pixelated; object-fit: contain; }
+        .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
         @keyframes superSpin { 0% { bottom: -110px; transform: translateX(-50%) rotate(0deg) scale(1); } 50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); } 100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; } }
         .super-spin { animation: superSpin 1.5s ease-in-out forwards !important; }
-        @keyframes imagePop { 0% { transform: scale(1); } 30% { transform: scale(0.85); } 60% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .pop-animation { animation: imagePop 0.4s ease-out !important; }
 
-        #button-panel { 
-            position: absolute; 
-            top: 52%; 
-            left: 50%; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            z-index: 70; 
-            opacity: 0; 
-            visibility: hidden; 
-            transform: translate(-50%); 
-        }
-        .button-row { display: flex; gap: 15px; justify-content: center; } 
-
-        .order-btn {
-            width: 100px; height: 100px; 
-            background: white; 
-            border: 4px solid #5a3e2b; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            box-shadow: 0 8px 0 #5a3e2b;
-            image-rendering: pixelated;
-        }
-
-        .speech-bubble { position: absolute; bottom: 260px; left: 400px; background: white; border: 4px solid #5a3e2b; border-radius: 30px; padding: 15px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 180px; }
-        #order-icon { height: auto; image-rendering: pixelated; }
-        .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
-        #score-panel { position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold; }
         #ending-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; display: none; justify-content: center; align-items: center; }
         #ending-img { width: 600px; image-rendering: pixelated; opacity: 0; cursor: pointer; }
-        .fade-in { opacity: 1 !important; transition: opacity 2s ease-in; }
+        @keyframes bouncePop { 0% { transform: scale(1); } 30% { transform: scale(0.85); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .pop-animation { animation: bouncePop 0.3s ease-out !important; }
+        .fade-in { opacity: 1 !important; transition: opacity 1.5s; }
+
+        #score-panel { position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold; }
+        #mute-btn { position: absolute; right: 15px; bottom: 15px; width: 50px; height: 50px; z-index: 110; cursor: pointer; opacity: 0.7; image-rendering: pixelated; }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <img src="mute.png" id="mute-btn" onclick="toggleMute()" style="position: absolute; right: 15px; bottom: 15px; width: 50px; height: 50px; z-index: 110; cursor: pointer; opacity: 0.5;">
+    <img src="mute.png" id="mute-btn" onclick="toggleMute()">
     <div id="intro-screen" onclick="startSequence()">
         <img src="logo.png" style="width:600px; image-rendering:pixelated;">
         <div id="start-prompt">Push to Start</div>
@@ -100,46 +66,48 @@
     <div id="transition-layer"><img src="start.png" id="start-img-obj"></div>
     <div id="game-screen" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #a3d5ff url('background.png') no-repeat center center; background-size: cover; image-rendering: pixelated; z-index: 1; display: none;"></div>
     <div id="customer-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none;"></div>
-    <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 65; opacity: 0; transition: opacity 0.5s; pointer-events: none;"></div>
+    <div id="overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background:black; opacity:0; z-index:180; pointer-events:none;"></div>
     <div id="speech-bubble" class="speech-bubble">
         <img id="order-icon" src="">
-        <span id="order-text" style="font-size:24px; color:#5a3e2b; margin-top:8px; font-family: 'Courier New'; font-weight: bold;"></span>
+        <span id="order-text" style="font-size:28px; color:#5a3e2b; margin-top:10px; font-family: 'Courier New'; font-weight: bold;"></span>
     </div>
     <div id="button-panel"></div>
-    <div id="score-panel" style="position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold;">COINS: <span id="coin-count">0</span></div>
+    <div id="score-panel">COINS: <span id="coin-count">0</span></div>
     <div id="ending-screen"><img src="ending.png" id="ending-img" onclick="handleEndingClick()"></div>
 </div>
 
 <script>
+    // [오디오 로드]
     const sndClick = new Audio('click.wav');
+    const sndFail = new Audio('fail.wav');
+    const sndBye = new Audio('bye.wav');
+    const sndGo = new Audio('go.wav');
     const sndYay = new Audio('yay.wav');
     const sndKaching = new Audio('kaching.wav');
     const sndWrong = new Audio('wrong answer.wav');
-    const sndBye = new Audio('bye.wav');
-    const sndGo = new Audio('go.wav');
     const bgm = new Audio('Scoops and Smiles.mp3');
-    bgm.loop = true; bgm.volume = 0.4;
+    bgm.loop = true;
 
-    const customerList = ['customer_alien.png', 'customer_boy.png', 'customer_girl.png', 'customer_pingo.png', 'customer_puppy.png'];
+    // [데이터 및 변수]
     const icecreamMenu = [
         { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png', score: 12 },
         { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png', score: 8 },
         { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png', score: 10 },
         { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png', score: 11 },
         { id: 'banana', name: 'BANANA', img: 'icecream_banana.png', score: 5 },
-        { id: 'luxury', name: 'LUXURY CHOCO', img: 'luxury.png', score: 388 }
+        { id: 'luxury', name: 'LUXURY', img: 'luxury.png', score: 388 }
     ];
 
-    let currentOrder = null;
-    let score = 0;
+    let score = 0; 
+    let isGameEnded = false; 
     let isMuted = false;
-    let isGameEnded = false;
-    let luxuryAppearedCount = 0;
-    let maxLuxuryAllowed = Math.random() < 0.5 ? 1 : 2;
+    let luxuryCount = 0; 
+    let luxuryLimit = Math.random() < 0.5 ? 1 : 2; // 이번 게임 럭셔리 총 횟수
 
     function toggleMute() {
-        isMuted = !isMuted; bgm.muted = isMuted;
-        document.querySelector('#mute-btn').src = isMuted ? 'unmute.png' : 'mute.png';
+        isMuted = !isMuted;
+        bgm.muted = isMuted; // BGM만 제어
+        document.getElementById('mute-btn').src = isMuted ? 'unmute.png' : 'mute.png';
     }
 
     function handleEndingClick() {
@@ -156,12 +124,8 @@
         const transLayer = document.getElementById('transition-layer');
         transLayer.style.display = 'block';
         document.getElementById('start-img-obj').classList.add('sweep-animation');
-        setTimeout(() => { sndGo.play().catch(e => {}); }, 700);
-        setTimeout(() => {
-            transLayer.style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-            spawnCustomer();
-        }, 1800);
+        setTimeout(() => { sndGo.play(); }, 700);
+        setTimeout(() => { transLayer.style.display = 'none'; document.getElementById('game-screen').style.display = 'block'; spawnCustomer(); }, 1800);
     }
 
     function spawnCustomer() {
@@ -169,97 +133,87 @@
         const panel = document.getElementById('button-panel');
         panel.innerHTML = '';
         
-        const shuffle = [...icecreamMenu].sort(() => Math.random() - 0.5);
-        const row1 = document.createElement('div');
-        row1.className = 'button-row';
-        const row2 = document.createElement('div');
-        row2.className = 'button-row';
-        
-        shuffle.forEach((item, index) => {
+        // [메뉴 버튼 구성: 항상 전체 메뉴 유지]
+        const fullMenu = [...icecreamMenu, { id: 'fail', img: 'fail.png' }].sort(() => Math.random() - 0.5);
+        const row1 = document.createElement('div'); row1.className = 'button-row';
+        const row2 = document.createElement('div'); row2.className = 'button-row';
+        fullMenu.forEach((item, index) => {
             const btn = document.createElement('div');
-            btn.className = 'order-btn' + (item.id === 'luxury' ? ' luxury-vibrate' : '');
-            btn.innerHTML = `<img src="${item.img}" style="width: 80px; height: 80px; image-rendering: pixelated;">`;
-            btn.onclick = () => { if(!isGameEnded) checkOrder(item.id); };
-            if(index < 3) row1.appendChild(btn);
-            else row2.appendChild(btn);
+            btn.className = 'order-btn' + (item.id === 'fail' ? ' fail-btn' : '');
+            btn.innerHTML = `<img src="${item.img}">`;
+            btn.onclick = () => { if(isGameEnded) return; if(item.id === 'fail') triggerGameOver(); else checkOrder(item.id); };
+            if(index < 4) row1.appendChild(btn); else row2.appendChild(btn);
         });
+        panel.appendChild(row1); panel.appendChild(row2);
 
-        panel.appendChild(row1);
-        panel.appendChild(row2);
-
-        const layer = document.getElementById('customer-layer');
-        layer.innerHTML = '';
+        // [고객 생성]
         document.getElementById('speech-bubble').style.opacity = '0';
-        document.getElementById('overlay').style.opacity = '0';
         panel.style.visibility = 'hidden'; panel.style.opacity = '0';
-        
-        row1.classList.remove('move-row1-normal', 'move-row1-reverse');
-        row2.classList.remove('move-row2-normal', 'move-row2-reverse');
-        
+        const layer = document.getElementById('customer-layer'); layer.innerHTML = '';
         const img = new Image();
-        img.src = customerList[Math.floor(Math.random() * customerList.length)];
-        img.className = 'customer';
-        layer.appendChild(img);
-        
-        if (luxuryAppearedCount < maxLuxuryAllowed && (Math.random() < 0.15 || (score > 4 && luxuryAppearedCount === 0))) {
-            currentOrder = icecreamMenu.find(m => m.id === 'luxury');
-            luxuryAppearedCount++;
+        img.src = ['customer_boy.png', 'customer_girl.png', 'customer_alien.png', 'customer_pingo.png'][Math.floor(Math.random()*4)];
+        img.className = 'customer'; layer.appendChild(img);
+
+        // [주문 결정 로직]
+        let orderPool;
+        // 150점 미만이거나 한도 초과 시 럭셔리 제외
+        if (score < 150 || luxuryCount >= luxuryLimit) {
+            orderPool = icecreamMenu.filter(item => item.id !== 'luxury');
         } else {
-            currentOrder = icecreamMenu.filter(m => m.id !== 'luxury')[Math.floor(Math.random() * 5)];
+            orderPool = [...icecreamMenu];
         }
 
-        const icon = document.getElementById('order-icon');
-        icon.src = currentOrder.img;
-        icon.style.width = (currentOrder.id === 'luxury') ? '104px' : '275px';
+        currentOrder = orderPool[Math.floor(Math.random() * orderPool.length)];
+        if (currentOrder.id === 'luxury') luxuryCount++;
+
+        document.getElementById('order-icon').src = currentOrder.img;
         document.getElementById('order-text').innerText = currentOrder.name + "!";
         
         setTimeout(() => { img.style.bottom = '-110px'; }, 100);
         setTimeout(() => { document.getElementById('speech-bubble').style.opacity = '1'; }, 1600);
         setTimeout(() => {
-            document.getElementById('overlay').style.opacity = '1'; 
             panel.style.visibility = 'visible'; panel.style.opacity = '1';
-            
-            const isReverse = Math.random() < 0.5;
-            row1.classList.add(isReverse ? 'move-row1-reverse' : 'move-row1-normal');
-            row2.classList.add(isReverse ? 'move-row2-reverse' : 'move-row2-normal');
+            row1.classList.add('move-row1-normal'); row2.classList.add('move-row2-normal');
         }, 3600);
     }
 
     function checkOrder(id) {
-        const container = document.getElementById('game-container');
+        const gc = document.getElementById('game-container');
         if (id === currentOrder.id) {
+            // 정답 피드백: 화면 튕김
+            gc.classList.remove('correct-bounce', 'shake-effect');
+            void gc.offsetWidth; 
+            gc.classList.add('correct-bounce');
+
             sndClick.currentTime = 0; sndClick.play();
-            score += currentOrder.score;
-            document.getElementById('coin-count').innerText = score;
-            document.getElementById('overlay').style.opacity = '0';
-            document.getElementById('button-panel').style.opacity = '0';
+            score += currentOrder.score; document.getElementById('coin-count').innerText = score;
+            sndYay.play(); sndKaching.play();
             document.getElementById('speech-bubble').style.opacity = '0';
-            sndYay.play(); sndKaching.play(); 
-            container.classList.add('earthquake-effect');
-            const customer = document.querySelector('.customer');
-            if (customer) { customer.classList.add('super-spin'); }
-            
-            // [수정] 승리 조건 888점으로 복구
-            if (score >= 888) {
-                isGameEnded = true;
-                setTimeout(() => {
-                    bgm.pause();
-                    document.getElementById('ending-screen').style.display = 'flex';
-                    setTimeout(() => document.getElementById('ending-img').classList.add('fade-in'), 100);
-                }, 1600);
-            } else {
-                setTimeout(() => { 
-                    container.classList.remove('earthquake-effect');
-                    spawnCustomer(); 
-                }, 1600);
-            }
+            document.getElementById('button-panel').style.opacity = '0';
+            const c = document.querySelector('.customer');
+            if(c) c.classList.add('super-spin');
+            if (score >= 888) { setTimeout(() => showEnding(), 1600); } 
+            else { setTimeout(() => spawnCustomer(), 1600); }
         } else {
+            // 오답 피드백: 흔들림
             sndWrong.currentTime = 0; sndWrong.play();
-            container.classList.remove('shake-effect');
-            void container.offsetWidth;
-            container.classList.add('shake-effect');
-            setTimeout(() => container.classList.remove('shake-effect'), 300);
+            gc.classList.remove('correct-bounce', 'shake-effect');
+            void gc.offsetWidth;
+            gc.classList.add('shake-effect');
         }
+    }
+
+    function triggerGameOver() {
+        isGameEnded = true; bgm.pause(); sndFail.currentTime = 0; sndFail.play();
+        document.getElementById('overlay').style.opacity = "1";
+        setTimeout(() => showEnding(true), 1200);
+    }
+
+    function showEnding(immediate = false) {
+        isGameEnded = true; bgm.pause();
+        document.getElementById('ending-screen').style.display = 'flex';
+        const el = document.getElementById('ending-img');
+        setTimeout(() => { el.classList.add('fade-in'); }, 100);
     }
 </script>
 </body>
