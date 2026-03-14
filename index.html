@@ -2,17 +2,13 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Icecream Shop! - Final Design</title>
+    <title>Icecream Shop! - Big Scoops Edition</title>
     <style>
         body { margin: 0; background-color: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
         #game-container { position: relative; width: 800px; height: 600px; background-color: #333; overflow: hidden; }
 
-        /* [애니메이션: 정답/오답/이동] */
-        @keyframes strongBounce {
-            0%, 100% { transform: scale(1); filter: brightness(1); }
-            15%, 45%, 75% { transform: scale(1.08); filter: brightness(1.2); }
-            30%, 60%, 90% { transform: scale(0.96); filter: brightness(1.1); }
-        }
+        /* [애니메이션 모음] */
+        @keyframes strongBounce { 0%, 100% { transform: scale(1); } 15%, 45%, 75% { transform: scale(1.08); } 30%, 60%, 90% { transform: scale(0.96); } }
         .correct-bounce { animation: strongBounce 0.5s ease-out !important; }
         @keyframes sharpShake { 0%, 100% { transform: translate(0, 0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-12px, 0); } 20%, 40%, 60%, 80% { transform: translate(12px, 0); } }
         .shake-effect { animation: sharpShake 0.3s cubic-bezier(.36,.07,.19,.97) both !important; }
@@ -23,7 +19,7 @@
         @keyframes bouncePop { 0% { transform: scale(1); } 30% { transform: scale(0.85); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
         .pop-animation { animation: bouncePop 0.3s ease-out !important; }
 
-        /* UI 및 화면 구성 */
+        /* [인트로 & 트랜지션] */
         #intro-screen { position: absolute; width: 100%; height: 100%; background: #000; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; }
         #start-prompt { color: #ffffff; font-family: 'Courier New'; font-size: 32px; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0px #ff5722; animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -32,21 +28,26 @@
         .sweep-animation { animation: sweepWithPause 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
         @keyframes sweepWithPause { 0% { bottom: -400px; transform: translateX(-50%); opacity: 0; } 5% { opacity: 1; } 40%, 70% { bottom: calc(50% - 100px); transform: translateX(-50%); } 100% { bottom: 800px; transform: translateX(-50%); opacity: 1; } }
 
+        /* [말풍선 & 주문 아이콘] */
+        .speech-bubble { position: absolute; bottom: 260px; left: 380px; background: black; border: 4px solid white; border-radius: 35px; padding: 25px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 250px; }
+        #order-icon { width: 180px; height: 180px; image-rendering: pixelated; object-fit: contain; background-color: #f5f5dc; border-radius: 50%; padding: 20px; box-sizing: border-box; }
+        #order-text { font-size: 28px; color: white; margin-top: 15px; font-family: 'Courier New'; font-weight: bold; }
+
+        /* [제작 버튼 UI] */
         #button-panel { position: absolute; top: 52%; left: 50%; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 70; opacity: 0; visibility: hidden; transform: translate(-50%, 0); }
         .button-row { display: flex; gap: 15px; justify-content: center; align-items: center; } 
-        .order-btn { width: 100px; height: 100px; background: white; border: 4px solid #5a3e2b; border-radius: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 0 #5a3e2b; image-rendering: pixelated; box-sizing: border-box; }
+        .order-btn { width: 100px; height: 100px; background: white; border: 4px solid #5a3e2b; border-radius: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 8px 0 #5a3e2b; image-rendering: pixelated; box-sizing: border-box; overflow: hidden; }
+        
+        /* [중요: 요청하신 5종만 32% 확대 적용] */
         .order-btn img { width: 75px; height: 75px; object-fit: contain; }
+        .enlarged-img { transform: scale(1.32); } 
+        
         .fail-btn { width: 92px !important; height: 92px !important; }
 
-        /* [수정: 검은색 배경 + 흰색 테두리 말풍선] */
-        .speech-bubble { position: absolute; bottom: 260px; left: 380px; background: black; border: 4px solid white; border-radius: 35px; padding: 25px; z-index: 20; opacity: 0; transition: opacity 0.5s; display: flex; flex-direction: column; align-items: center; min-width: 250px; }
-        #order-icon { width: 220px; height: 220px; image-rendering: pixelated; object-fit: contain; }
-        #order-text { font-size: 28px; color: white; margin-top: 10px; font-family: 'Courier New'; font-weight: bold; }
-
+        /* 캐릭터 및 스코어 */
         .customer { position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%); width: 585px; height: auto; image-rendering: pixelated; transition: bottom 1.5s ease-out; z-index: 6; }
-        @keyframes superSpin { 0% { bottom: -110px; transform: translateX(-50%) rotate(0deg) scale(1); } 50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); } 100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; } }
+        @keyframes superSpin { 0% { bottom: -110px; transform: translateX(-50%) rotate(0deg); } 50% { bottom: 180px; transform: translateX(-50%) rotate(900deg) scale(1.4); } 100% { bottom: -700px; transform: translateX(-50%) rotate(1800deg) scale(0.5); opacity: 0; } }
         .super-spin { animation: superSpin 1.5s ease-in-out forwards !important; }
-
         #score-panel { position: absolute; top: 20px; right: 20px; background: #fdf5e6; border: 3px solid #5a3e2b; padding: 5px 15px; z-index: 50; font-family: 'Courier New'; font-weight: bold; }
         #mute-btn { position: absolute; right: 15px; bottom: 15px; width: 50px; height: 50px; z-index: 110; cursor: pointer; opacity: 0.7; image-rendering: pixelated; }
         #ending-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; display: none; justify-content: center; align-items: center; }
@@ -87,20 +88,19 @@
     bgm.loop = true;
 
     const icecreamMenu = [
-        { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png', score: 12 },
-        { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png', score: 8 },
-        { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png', score: 10 },
-        { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png', score: 11 },
-        { id: 'banana', name: 'BANANA', img: 'icecream_banana.png', score: 5 },
-        { id: 'luxury', name: 'LUXURY', img: 'luxury.png', score: 388 }
+        { id: 'choco', name: 'CHOCO', img: 'icecream_choco.png', score: 12, enlarge: true },
+        { id: 'pistachio', name: 'PISTACHIO', img: 'icecream_pistachio.png', score: 8, enlarge: true },
+        { id: 'strawberry', name: 'STRAWBERRY', img: 'icecream_strawberry.png', score: 10, enlarge: true },
+        { id: 'vanilla', name: 'VANILLA', img: 'icecream_vanilla.png', score: 11, enlarge: true },
+        { id: 'banana', name: 'BANANA', img: 'icecream_banana.png', score: 5, enlarge: true },
+        { id: 'luxury', name: 'LUXURY', img: 'luxury.png', score: 388, enlarge: false }
     ];
 
     let score = 0; let isGameEnded = false; let isMuted = false;
     let luxuryCount = 0; let luxuryLimit = Math.random() < 0.5 ? 1 : 2;
 
     function toggleMute() {
-        isMuted = !isMuted;
-        bgm.muted = isMuted;
+        isMuted = !isMuted; bgm.muted = isMuted;
         document.getElementById('mute-btn').src = isMuted ? 'unmute.png' : 'mute.png';
     }
 
@@ -108,8 +108,7 @@
         const el = document.getElementById('ending-img');
         sndBye.currentTime = 0; sndBye.play();
         el.classList.remove('pop-animation');
-        void el.offsetWidth;
-        el.classList.add('pop-animation');
+        void el.offsetWidth; el.classList.add('pop-animation');
     }
 
     function startSequence() {
@@ -119,33 +118,42 @@
         transLayer.style.display = 'block';
         document.getElementById('start-img-obj').classList.add('sweep-animation');
         setTimeout(() => { sndGo.play(); }, 700);
-        setTimeout(() => { transLayer.style.display = 'none'; document.getElementById('game-screen').style.display = 'block'; spawnCustomer(); }, 1800);
+        setTimeout(() => { 
+            transLayer.style.display = 'none'; 
+            document.getElementById('game-screen').style.display = 'block'; 
+            spawnCustomer(); 
+        }, 1800);
     }
 
     function spawnCustomer() {
         if(isGameEnded) return;
         const panel = document.getElementById('button-panel');
         panel.innerHTML = '';
-        const fullMenu = [...icecreamMenu, { id: 'fail', img: 'fail.png' }].sort(() => Math.random() - 0.5);
+        const fullMenu = [...icecreamMenu, { id: 'fail', img: 'fail.png', enlarge: false }].sort(() => Math.random() - 0.5);
         const row1 = document.createElement('div'); row1.className = 'button-row';
         const row2 = document.createElement('div'); row2.className = 'button-row';
+        
         fullMenu.forEach((item, index) => {
             const btn = document.createElement('div');
             btn.className = 'order-btn' + (item.id === 'fail' ? ' fail-btn' : '');
-            btn.innerHTML = `<img src="${item.img}">`;
+            const imgClass = item.enlarge ? 'enlarged-img' : '';
+            btn.innerHTML = `<img src="${item.img}" class="${imgClass}">`;
             btn.onclick = () => { if(isGameEnded) return; if(item.id === 'fail') triggerGameOver(); else checkOrder(item.id); };
             if(index < 4) row1.appendChild(btn); else row2.appendChild(btn);
         });
         panel.appendChild(row1); panel.appendChild(row2);
+        
         document.getElementById('speech-bubble').style.opacity = '0';
         panel.style.visibility = 'hidden'; panel.style.opacity = '0';
         const layer = document.getElementById('customer-layer'); layer.innerHTML = '';
         const img = new Image();
         img.src = ['customer_boy.png', 'customer_girl.png', 'customer_alien.png', 'customer_pingo.png'][Math.floor(Math.random()*4)];
         img.className = 'customer'; layer.appendChild(img);
+        
         let orderPool = (score < 150 || luxuryCount >= luxuryLimit) ? icecreamMenu.filter(i => i.id !== 'luxury') : [...icecreamMenu];
         currentOrder = orderPool[Math.floor(Math.random() * orderPool.length)];
         if (currentOrder.id === 'luxury') luxuryCount++;
+        
         document.getElementById('order-icon').src = currentOrder.img;
         document.getElementById('order-text').innerText = currentOrder.name + "!";
         setTimeout(() => { img.style.bottom = '-110px'; }, 100);
